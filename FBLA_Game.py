@@ -10,11 +10,13 @@ screen_height = 750
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('FBLA Project')
 
+game_over = 0
+
 # load images
 background = pygame.image.load('background.jpg')
 
 
-class Player():
+class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         img = pygame.image.load('player.png')
         self.image = pygame.transform.scale(img, (33, 33))
@@ -22,36 +24,43 @@ class Player():
         self.rect.x = x
         self.rect.y = y
 
-    def update(self):
+    def update(self, game_over):
 
-        # get keypresses
-        key = pygame.key.get_pressed()
-        if key[pygame.K_LEFT]:
-            self.rect.x -= 1
-        elif key[pygame.K_RIGHT]:
-            self.rect.x += 1
-        elif key[pygame.K_UP]:
-            self.rect.y -= 1
-        elif key[pygame.K_DOWN]:
-            self.rect.y += 1
+        if game_over == 0:
+            # get keypresses
+            key = pygame.key.get_pressed()
+            if key[pygame.K_LEFT]:
+                self.rect.x -= 1
+            if key[pygame.K_RIGHT]:
+                self.rect.x += 1
+            if key[pygame.K_UP]:
+                self.rect.y -= 1
+            if key[pygame.K_DOWN]:
+                self.rect.y += 1
 
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
-        elif self.rect.top < 0:
-            self.rect.top = 0
-        elif self.rect.right > screen_width:
-            self.rect.right = screen_width
-        elif self.rect.left < 0:
-            self.rect.left = 0
+            if self.rect.bottom > screen_height:
+                self.rect.bottom = screen_height
+            elif self.rect.top < 0:
+                self.rect.top = 0
+            elif self.rect.right > screen_width:
+                self.rect.right = screen_width
+            elif self.rect.left < 0:
+                self.rect.left = 0
+
+            # check for collision with enemies
+            if pygame.sprite.collide_mask(self, obstacle):
+                game_over = -1
 
         # draw player onto screen
         screen.blit(self.image, self.rect)
+
+        return game_over
 
 
 player = Player(10, 375)
 
 
-class Obstacle():
+class Obstacle(pygame.sprite.Sprite):
     def __init__(self, x, y):
         img = pygame.image.load('obstacle.png')
         self.image = pygame.transform.scale(img, (66, 66))
@@ -64,7 +73,7 @@ class Obstacle():
     def update(self):
         self.rect.y -= self.move_direction
         self.move_counter += 1
-        if self.move_counter > 570:
+        if self.move_counter > 550:
             self.move_direction *= -1
             self.move_counter = 0
 
@@ -78,7 +87,7 @@ while run:
 
     screen.blit(background, (0, 0))
 
-    player.update()
+    game_over = player.update(game_over)
     obstacle.update()
 
     for event in pygame.event.get():
