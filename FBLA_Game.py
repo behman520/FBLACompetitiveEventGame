@@ -10,13 +10,10 @@ screen_height = 750
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('FBLA Project')
 
-game_over = False
+main_menu = True
 
 # loads background
 background = pygame.image.load('background.jpg')
-
-# loads button
-
 
 # score
 score_value = 0
@@ -44,9 +41,9 @@ def show_lives(x, y):
 
 # class for button
 class Button(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        image = pygame.image.load('button.png')
-        self.image = pygame.transform.scale(image, (100, 60))
+    def __init__(self, x, y, image):
+        self.image = image
+        self.transform_image = pygame.transform.scale(image, (250, 100))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -54,6 +51,7 @@ class Button(pygame.sprite.Sprite):
 
     # draws button
     def draw_button(self):
+        screen.blit(self.image, self.rect)
         action = False
 
         # gets mouse position
@@ -67,13 +65,12 @@ class Button(pygame.sprite.Sprite):
         if pygame.mouse.get_pressed()[0] == 0:
             self.clicked = False
 
-        if life_count == 0:
-            screen.blit(self.image, self.rect)
-
         return action
 
 
-restart_button = Button(screen_width/2, screen_height/2)
+start_button = Button(screen_width/2 - 600, screen_height/2 - 100, pygame.image.load('Start button.png'))
+exit_button = Button(screen_width/2 + 50, screen_height/2 - 100, pygame.image.load('Exit button.png'))
+main_menu_button = Button(screen_width/2 - 270, screen_height/2 - 50, pygame.image.load('Main Menu button.png'))
 
 
 # class for player
@@ -175,22 +172,45 @@ class Coin(pygame.sprite.Sprite):
 
 coin1 = Coin(screen_width/2, screen_height/2)
 
+# game over text
+game_over_font = pygame.font.Font('freesansbold.ttf', 64)
+game_overX = screen_width/2 - 180
+game_overY = 100
+
+
+# prints game over text
+def print_game_over(x, y):
+    game_over = game_over_font.render("Game over!", True, (255, 255, 255))
+    screen.blit(game_over, (x, y))
+
 
 run = True
 while run:
     screen.blit(background, (0, 0))
 
-    show_score(score_textX, score_textY)
-    show_lives(life_textX, life_textY)
-    life_count = player.update(life_count, 10, screen_height/2)
-    obstacle1.update()
-    obstacle2.update()
-    coin1_collected = coin1.update(coin1_collected, int(score_value))
-    score_value = coin1.update(int(score_value), coin1_collected)
-    if restart_button.draw_button():
-        pass
+    if main_menu == True:
+        if exit_button.draw_button():
+            run = False
+        if start_button.draw_button():
+            main_menu = False
+    else:
+        show_score(score_textX, score_textY)
+        show_lives(life_textX, life_textY)
+        life_count = player.update(life_count, 10, screen_height/2)
+        obstacle1.update()
+        obstacle2.update()
+        coin1_collected = coin1.update(coin1_collected, int(score_value))
+        score_value = coin1.update(int(score_value), coin1_collected)
+        if life_count == 0:
+            screen.blit(background, (0, 0))
+            print_game_over(game_overX, game_overY)
+            if main_menu_button.draw_button():
+                main_menu = True
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            run = False
+        elif pygame.key.get_pressed()[K_ESCAPE]:
             run = False
 
     pygame.display.update()
