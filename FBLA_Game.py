@@ -11,6 +11,9 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('FBLA Project')
 
 main_menu = True
+instructions_screen = False
+game = False
+level = 1
 
 # loads background
 background = pygame.image.load('background.jpg')
@@ -70,7 +73,9 @@ class Button(pygame.sprite.Sprite):
 
 start_button = Button(screen_width/2 - 600, screen_height/2 - 100, pygame.image.load('Start button.png'))
 exit_button = Button(screen_width/2 + 50, screen_height/2 - 100, pygame.image.load('Exit button.png'))
-main_menu_button = Button(screen_width/2 - 270, screen_height/2 - 50, pygame.image.load('Main Menu button.png'))
+main_menu_button1 = Button(screen_width/2 - 270, screen_height/2 - 50, pygame.image.load('Main Menu button.png'))
+instructions_button = Button(screen_width/2 - 270, screen_height/2 + 150, pygame.image.load('Instructions button.png'))
+main_menu_button2 = Button(screen_width/2 - 270, screen_height/2 - 320, pygame.image.load('Main Menu button.png'))
 
 
 # class for player
@@ -170,7 +175,33 @@ class Coin(pygame.sprite.Sprite):
         return score_value
 
 
-coin1 = Coin(screen_width/2, screen_height/2)
+coin1 = Coin(screen_width / 2, screen_height / 2)
+
+
+# class for finish line
+level_completed = False
+
+
+class FinishLine(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        img = pygame.image.load('Finish line.png')
+        self.image = pygame.transform.scale(img, (50, screen_height - 100))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, level_completed):
+        screen.blit(self.image, self.rect)
+        if not level_completed:
+            if pygame.sprite.collide_mask(self, player):
+                level_completed = True
+                player.rect.x = 10
+                player.rect.y = screen_height/2
+        return level_completed
+
+
+finish_line = FinishLine(screen_width - 50, screen_height/2 - (screen_height - 100)/2)
+
 
 # game over text
 game_over_font = pygame.font.Font('freesansbold.ttf', 64)
@@ -184,6 +215,11 @@ def print_game_over(x, y):
     screen.blit(game_over, (x, y))
 
 
+# prints instructions text
+def print_instructions(x, y):
+    screen.blit(pygame.image.load('Instruction text.png'), (x, y))
+
+
 run = True
 while run:
     screen.blit(background, (0, 0))
@@ -193,19 +229,42 @@ while run:
             run = False
         if start_button.draw_button():
             main_menu = False
-    else:
+            game = True
+            life_count = 3
+            score_value = 0
+        if instructions_button.draw_button():
+            instructions_screen = True
+            main_menu = False
+            game = False
+            life_count = 3
+    elif main_menu == False and game == True:
         show_score(score_textX, score_textY)
         show_lives(life_textX, life_textY)
-        life_count = player.update(life_count, 10, screen_height/2)
+        if level == 1:
+            life_count = player.update(life_count, 10, screen_height/2)
+        if level == 2:
+            life_count = player.update(life_count, 10, screen_height/2)
+        if level == 3:
+            life_count = player.update(life_count, 10, screen_height/2)
         obstacle1.update()
         obstacle2.update()
         coin1_collected = coin1.update(coin1_collected, int(score_value))
         score_value = coin1.update(int(score_value), coin1_collected)
+        level_completed = finish_line.update(level_completed)
+        if level_completed == True:
+            level += 1
+            print(level)
+            level_completed = False
         if life_count == 0:
             screen.blit(background, (0, 0))
             print_game_over(game_overX, game_overY)
-            if main_menu_button.draw_button():
+            if main_menu_button1.draw_button():
                 main_menu = True
+    elif instructions_screen == True and main_menu == False:
+        screen.blit(background, (0, 0))
+        print_instructions(screen_width/2 - 400, screen_height/2 - 100)
+        if main_menu_button2.draw_button():
+            main_menu = True
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
