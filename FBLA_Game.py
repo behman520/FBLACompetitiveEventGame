@@ -14,6 +14,7 @@ main_menu = True
 instructions_screen = False
 game = False
 level = 1
+high_score = 0
 
 # loads background
 background = pygame.image.load('background.jpg')
@@ -304,6 +305,18 @@ def print_game_complete(x, y):
     screen.blit(game_complete, (x, y))
 
 
+# high score text
+high_score_font = pygame.font.Font('freesansbold.ttf', 64)
+high_scoreX = screen_width/2 - 210
+high_scoreY = screen_height/2 + 100
+
+
+# prints high score text
+def print_high_score(x, y):
+    high_score_text = high_score_font.render("High score: " + str(high_score) + "!", True, (255, 255, 255))
+    screen.blit(high_score_text, (x, y))
+
+
 # prints instructions text
 def print_instructions(x, y):
     screen.blit(pygame.image.load('Instruction text.png'), (x, y))
@@ -425,6 +438,9 @@ while run:
     elif main_menu is False and game is True and level == 4:
         screen.blit(background, (0, 0))
         print_game_complete(game_completeX, game_completeY)
+        if score_value > high_score:
+            high_score = score_value
+        print_high_score(high_scoreX, high_scoreY)
         if main_menu_button3.draw_button():
             main_menu = True
             game = False
